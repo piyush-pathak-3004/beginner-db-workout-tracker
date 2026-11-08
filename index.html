@@ -1,0 +1,1223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Beginner DB Workout Tracker | 2.5kg Plan</title>
+  <style>
+    :root {
+      --bg: #0f1419;
+      --card: #1a2332;
+      --card-hover: #243044;
+      --primary: #3b82f6;
+      --primary-dark: #2563eb;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --text: #e2e8f0;
+      --text-muted: #94a3b8;
+      --border: #2d3a4f;
+      --radius: 12px;
+      --shadow: 0 4px 20px rgba(0,0,0,0.3);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      min-height: 100vh;
+      padding-bottom: 80px;
+    }
+
+    .container {
+      max-width: 680px;
+      margin: 0 auto;
+      padding: 16px;
+    }
+
+    header {
+      text-align: center;
+      padding: 20px 0 10px;
+      position: sticky;
+      top: 0;
+      background: linear-gradient(to bottom, var(--bg) 80%, transparent);
+      z-index: 100;
+    }
+
+    h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #60a5fa, #34d399);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 4px;
+    }
+
+    .subtitle {
+      color: var(--text-muted);
+      font-size: 0.85rem;
+    }
+
+    /* Dashboard Stats */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin: 16px 0;
+    }
+
+    .stat-card {
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 14px 8px;
+      text-align: center;
+      border: 1px solid var(--border);
+    }
+
+    .stat-value {
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    .stat-label {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-top: 2px;
+    }
+
+    /* Navigation Tabs */
+    .tabs {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      padding: 8px 0 16px;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+    }
+    .tabs::-webkit-scrollbar { display: none; }
+
+    .tab {
+      flex-shrink: 0;
+      padding: 10px 16px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+
+    .tab:hover, .tab.active {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
+
+    .tab.completed {
+      border-color: var(--success);
+    }
+    .tab.completed::after {
+      content: ' ✓';
+      color: var(--success);
+    }
+    .tab.active.completed::after {
+      color: white;
+    }
+
+    /* Cards */
+    .card {
+      background: var(--card);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      padding: 16px;
+      margin-bottom: 16px;
+      box-shadow: var(--shadow);
+    }
+
+    .card h2 {
+      font-size: 1.15rem;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .card h3 {
+      font-size: 1rem;
+      margin: 16px 0 8px;
+      color: #93c5fd;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      background: rgba(59, 130, 246, 0.2);
+      color: #93c5fd;
+    }
+
+    .badge.success {
+      background: rgba(16, 185, 129, 0.2);
+      color: #6ee7b7;
+    }
+
+    /* Warmup */
+    .warmup {
+      background: rgba(245, 158, 11, 0.1);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      border-radius: var(--radius);
+      padding: 12px;
+      margin-bottom: 16px;
+      font-size: 0.9rem;
+    }
+
+    .warmup strong {
+      color: var(--warning);
+    }
+
+    /* Exercise */
+    .exercise {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px;
+      margin-bottom: 12px;
+      background: rgba(0,0,0,0.2);
+      transition: border-color 0.2s;
+    }
+
+    .exercise.done {
+      border-color: var(--success);
+      background: rgba(16, 185, 129, 0.08);
+    }
+
+    .exercise-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .exercise-name {
+      font-weight: 600;
+      font-size: 1rem;
+    }
+
+    .exercise-meta {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+
+    .target {
+      color: #34d399;
+      font-size: 0.8rem;
+    }
+
+    .form-cues, .easier {
+      font-size: 0.85rem;
+      margin: 8px 0;
+      padding-left: 12px;
+      border-left: 3px solid var(--border);
+    }
+
+    .easier {
+      border-left-color: var(--warning);
+      color: #fcd34d;
+    }
+
+    .youtube-link {
+      display: inline-block;
+      margin-top: 6px;
+      font-size: 0.8rem;
+      color: #60a5fa;
+      text-decoration: none;
+    }
+    .youtube-link:hover {
+      text-decoration: underline;
+    }
+
+    /* Sets checkboxes */
+    .sets {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 12px 0 4px;
+    }
+
+    .set-btn {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      border: 2px solid var(--border);
+      background: transparent;
+      color: var(--text-muted);
+      font-weight: 600;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.15s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .set-btn:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    .set-btn.checked {
+      background: var(--success);
+      border-color: var(--success);
+      color: white;
+    }
+
+    .set-label {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      width: 100%;
+      margin-bottom: 4px;
+    }
+
+    /* Day complete button */
+    .complete-btn {
+      width: 100%;
+      padding: 14px;
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: var(--radius);
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 12px;
+      transition: background 0.2s;
+    }
+
+    .complete-btn:hover {
+      background: var(--primary-dark);
+    }
+
+    .complete-btn.done {
+      background: var(--success);
+    }
+
+    /* Calendar */
+    .calendar {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 6px;
+      margin-top: 12px;
+    }
+
+    .cal-day {
+      aspect-ratio: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      background: rgba(0,0,0,0.3);
+      color: var(--text-muted);
+    }
+
+    .cal-day.today {
+      border: 2px solid var(--primary);
+    }
+
+    .cal-day.completed {
+      background: var(--success);
+      color: white;
+      font-weight: 600;
+    }
+
+    .cal-day.rest {
+      background: rgba(148, 163, 184, 0.15);
+    }
+
+    .cal-header {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      text-align: center;
+      font-weight: 600;
+    }
+
+    /* Safety */
+    .safety {
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      border-radius: var(--radius);
+      padding: 12px;
+      font-size: 0.85rem;
+      margin-bottom: 16px;
+    }
+
+    .safety strong {
+      color: #f87171;
+    }
+
+    /* Notes */
+    .notes-area {
+      width: 100%;
+      min-height: 60px;
+      background: rgba(0,0,0,0.3);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      padding: 10px;
+      font-size: 0.9rem;
+      resize: vertical;
+      margin-top: 8px;
+    }
+
+    .notes-area:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+
+    /* Footer nav */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: var(--card);
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-around;
+      padding: 10px 0;
+      z-index: 200;
+    }
+
+    .nav-btn {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 0.75rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      cursor: pointer;
+      padding: 4px 12px;
+    }
+
+    .nav-btn.active {
+      color: var(--primary);
+    }
+
+    .nav-btn span {
+      font-size: 1.3rem;
+    }
+
+    /* Views */
+    .view {
+      display: none;
+    }
+    .view.active {
+      display: block;
+    }
+
+    /* Progress list */
+    .log-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.9rem;
+    }
+
+    .log-item:last-child {
+      border-bottom: none;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--text-muted);
+    }
+
+    /* Reset button */
+    .reset-btn {
+      background: transparent;
+      border: 1px solid var(--danger);
+      color: var(--danger);
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      margin-top: 16px;
+      width: 100%;
+    }
+
+    .reset-btn:hover {
+      background: rgba(239, 68, 68, 0.1);
+    }
+
+    /* Responsive tweaks */
+    @media (max-width: 400px) {
+      .stats-grid {
+        gap: 8px;
+      }
+      .stat-value {
+        font-size: 1.3rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Beginner DB Tracker</h1>
+      <p class="subtitle">2.5 kg Dumbbells • Form First • Habit Builder</p>
+    </header>
+
+    <!-- DASHBOARD VIEW -->
+    <div id="view-dashboard" class="view active">
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-value" id="streak-count">0</div>
+          <div class="stat-label">Day Streak</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="week-count">0/4</div>
+          <div class="stat-label">This Week</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="total-count">0</div>
+          <div class="stat-label">Total Days</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>📅 This Week</h2>
+        <div class="calendar" id="week-calendar"></div>
+      </div>
+
+      <div class="card">
+        <h2>🔥 Quick Start</h2>
+        <p style="color:var(--text-muted);font-size:0.9rem;margin-bottom:12px;">
+          Choose a day to begin your workout. Mark sets as you go — the day auto-completes when all exercises are done.
+        </p>
+        <div class="tabs" id="day-tabs" style="padding-bottom:0;"></div>
+      </div>
+
+      <div class="safety">
+        <strong>⚠️ Safety First</strong><br>
+        Stop immediately if you feel sharp pain (joint pain ≠ muscle burn). Focus on controlled form. With 2.5 kg, use higher reps and slow tempo. No ego — consistency wins.
+      </div>
+    </div>
+
+    <!-- WORKOUT VIEW -->
+    <div id="view-workout" class="view">
+      <div id="workout-content"></div>
+    </div>
+
+    <!-- PROGRESS VIEW -->
+    <div id="view-progress" class="view">
+      <div class="card">
+        <h2>📊 Progress Log</h2>
+        <div id="progress-list"></div>
+      </div>
+      <div class="card">
+        <h2>🗓️ Full Calendar</h2>
+        <div class="calendar" id="full-calendar"></div>
+        <p style="font-size:0.75rem;color:var(--text-muted);margin-top:10px;text-align:center;">
+          Green = completed workout day
+        </p>
+      </div>
+      <button class="reset-btn" onclick="resetAllData()">Reset All Data</button>
+    </div>
+
+    <!-- ABOUT VIEW -->
+    <div id="view-about" class="view">
+      <div class="card">
+        <h2>ℹ️ About This Plan</h2>
+        <p style="font-size:0.9rem;margin-bottom:12px;">
+          Absolute beginner 4-day split designed for a single pair of <strong>2.5 kg dumbbells</strong>. 
+          Prioritizes form, safety, habit building, and long-term health (posture, strength, bone density).
+        </p>
+        <h3>Split</h3>
+        <ul style="font-size:0.9rem;padding-left:20px;margin-bottom:12px;">
+          <li><strong>Day 1:</strong> Chest + Triceps</li>
+          <li><strong>Day 2:</strong> Back + Biceps</li>
+          <li><strong>Day 3:</strong> Rest</li>
+          <li><strong>Day 4:</strong> Shoulders + Abs</li>
+          <li><strong>Day 5:</strong> Legs + Glutes</li>
+          <li><strong>Day 6–7:</strong> Rest</li>
+        </ul>
+        <h3>Rules</h3>
+        <ul style="font-size:0.9rem;padding-left:20px;">
+          <li>No push-ups</li>
+          <li>~45 min including warm-up</li>
+          <li>1 easier alternative for every exercise</li>
+          <li>Higher reps (12–20) + slow tempo because weight is light</li>
+          <li>Stop if pain</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h2>💡 How to Use</h2>
+        <ol style="font-size:0.9rem;padding-left:20px;">
+          <li>Pick a day from the dashboard or tabs.</li>
+          <li>Do the warm-up.</li>
+          <li>Tap the numbered circles after each set.</li>
+          <li>When all sets of an exercise are checked, it marks complete.</li>
+          <li>When every exercise is done, the whole day is marked complete and your streak updates.</li>
+          <li>Add notes if you want (reps felt easy/hard, form tips, etc.).</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom Navigation -->
+  <nav class="bottom-nav">
+    <button class="nav-btn active" data-view="dashboard" onclick="showView('dashboard')">
+      <span>🏠</span> Home
+    </button>
+    <button class="nav-btn" data-view="workout" onclick="showView('workout')">
+      <span>💪</span> Workout
+    </button>
+    <button class="nav-btn" data-view="progress" onclick="showView('progress')">
+      <span>📈</span> Progress
+    </button>
+    <button class="nav-btn" data-view="about" onclick="showView('about')">
+      <span>ℹ️</span> About
+    </button>
+  </nav>
+
+  <script>
+    // ========== DATA ==========
+    const workouts = {
+      day1: {
+        id: 'day1',
+        name: 'Chest + Triceps',
+        short: 'Chest/Tris',
+        emoji: '🏋️',
+        warmup: 'Arm circles (forward/backward) 30s each • Shoulder rolls • Light torso twists • 10–15 bodyweight hip hinges • 1 easy floor-press pattern with no weight. Get blood flowing and shoulders mobile.',
+        exercises: [
+          {
+            id: 'floor-press',
+            name: 'Dumbbell Floor Press',
+            target: 'Chest, Triceps, Front Delts',
+            sets: 3,
+            reps: '12–15',
+            rest: '60s',
+            cues: 'Lie on back, knees bent, feet flat. Elbows ~45° from body. Lower until upper arms lightly touch floor, pause, press up squeezing chest. Keep lower back gently pressed to floor.',
+            easier: 'Seated dumbbell press (sit tall, press slightly forward/up).',
+            youtube: 'https://www.youtube.com/results?search_query=dumbbell+floor+press+form+beginner'
+          },
+          {
+            id: 'floor-fly',
+            name: 'Dumbbell Floor Fly',
+            target: 'Chest (isolation)',
+            sets: 3,
+            reps: '12–15',
+            rest: '45–60s',
+            cues: 'Same floor position. Slight bend in elbows. Lower dumbbells out in a wide arc until gentle chest stretch, then squeeze chest to bring them back over chest.',
+            easier: 'Standing upward chest fly (lighter arc in front of body).',
+            youtube: 'https://www.youtube.com/results?search_query=dumbbell+floor+fly+form'
+          },
+          {
+            id: 'close-grip-press',
+            name: 'Close-Grip Floor Press',
+            target: 'Triceps + Chest',
+            sets: 3,
+            reps: '12–15',
+            rest: '60s',
+            cues: 'Same as floor press but elbows tucked closer to sides and dumbbells closer together. Focus on triceps drive.',
+            easier: 'Seated close-grip press.',
+            youtube: 'https://www.youtube.com/results?search_query=close+grip+dumbbell+floor+press'
+          },
+          {
+            id: 'oh-extension',
+            name: 'Overhead Triceps Extension',
+            target: 'Triceps (long head)',
+            sets: 3,
+            reps: '12–15',
+            rest: '45–60s',
+            cues: 'Sit or stand tall, core braced. Hold one DB with both hands (or one per hand). Arms overhead, bend only at elbows (upper arms stay close to head), then extend fully. Keep ribs down — no excessive arching.',
+            easier: 'Seated version with back support or single-arm with more control.',
+            youtube: 'https://www.youtube.com/results?search_query=overhead+dumbbell+tricep+extension+form'
+          },
+          {
+            id: 'kickback',
+            name: 'Triceps Kickback',
+            target: 'Triceps isolation',
+            sets: 3,
+            reps: '12–15 per arm',
+            rest: '45s',
+            cues: 'Hinge at hips (flat back), upper arm pinned to side. Extend forearm back until arm is straight, squeeze triceps hard, lower with control.',
+            easier: 'Standing kickbacks with less hinge or hand supported on chair.',
+            youtube: 'https://www.youtube.com/results?search_query=dumbbell+tricep+kickback+form'
+          }
+        ]
+      },
+      day2: {
+        id: 'day2',
+        name: 'Back + Biceps',
+        short: 'Back/Bis',
+        emoji: '🔙',
+        warmup: 'Arm circles • Scapular retractions (squeeze shoulder blades) • Light hip hinges • Cat-cow if on floor • 1 easy set of rows with no/light weight.',
+        exercises: [
+          {
+            id: 'bent-row',
+            name: 'Dumbbell Bent-Over Row',
+            target: 'Back (Lats, Rhomboids, Traps), Biceps',
+            sets: 3,
+            reps: '12–15',
+            rest: '60s',
+            cues: 'Hinge at hips, flat back, slight knee bend. Pull elbows back toward hips, squeeze shoulder blades at top. Avoid rounding lower back.',
+            easier: 'Single-arm supported row (hand on chair or knee).',
+            youtube: 'https://www.youtube.com/results?search_query=dumbbell+bent+over+row+form+beginner'
+          },
+          {
+            id: 'single-row',
+            name: 'Single-Arm Dumbbell Row',
+            target: 'Back + Core stability',
+            sets: 3,
+            reps: '12–15 per side',
+            rest: '45–60s',
+            cues: 'Support one hand/knee on chair or bench. Pull elbow high, squeeze at top. Keep hips square.',
+            easier: 'Reduce range or use lighter tempo.',
+            youtube: 'https://www.youtube.com/results?search_query=single+arm+dumbbell+row+form'
+          },
+          {
+            id: 'rear-fly',
+            name: 'Rear Delt Fly (Bent-Over)',
+            target: 'Rear Delts + Upper Back',
+            sets: 3,
+            reps: '12–15',
+            rest: '45s',
+            cues: 'Same hinge position, slight elbow bend. Raise arms out to sides like opening a book. Squeeze rear delts.',
+            easier: 'Seated or chest-supported version if available.',
+            youtube: 'https://www.youtube.com/results?search_query=dumbbell+rear+delt+fly+form'
+          },
+          {
+            id: 'bicep-curl',
+            name: 'Dumbbell Biceps Curl',
+            target: 'Biceps',
+            sets: 3,
+            reps: '12–15',
+            rest: '45s',
+            cues: 'Stand tall, elbows pinned to sides. Curl without swinging. Squeeze at top.',
+            easier: 'Seated curls for stricter form.',
+            youtube: 'https://www.youtube.com/results?search_query=dumbbell+bicep+curl+form'
+          },
+          {
+            id: 'hammer-curl',
+            name: 'Hammer Curl',
+            target: 'Biceps + Brachialis',
+            sets: 3,
+            reps: '12–15',
+            rest: '45s',
+            cues: 'Neutral grip (palms facing each other). Same strict form as regular curls.',
+            easier: 'Seated or alternating arms.',
+            youtube: 'https://www.youtube.com/results?search_query=dumbbell+hammer+curl+form'
+          }
+        ]
+      },
+      day4: {
+        id: 'day4',
+        name: 'Shoulders + Abs',
+        short: 'Shoulders/Abs',
+        emoji: '💪',
+        warmup: 'Arm circles • Shoulder dislocations / arm swings • Light overhead reaches • Easy marches or torso twists.',
+        exercises: [
+          {
+            id: 'oh-press',
+            name: 'Dumbbell Overhead Press',
+            target: 'Shoulders (Front + Side), Triceps',
+            sets: 3,
+            reps: '12–15',
+            rest: '60s',
+            cues: 'Sit or stand, core braced. Press straight up. Avoid excessive lower-back arch. Control the descent.',
+            easier: 'Seated with back support or single-arm.',
+            youtube: 'https://www.youtube.com/results?search_query=dumbbell+overhead+press+form+beginner'
+          },
+          {
+            id: 'lateral-raise',
+            name: 'Lateral Raise',
+            target: 'Side Delts',
+            sets: 3,
+            reps: '12–15',
+            rest: '45s',
+            cues: 'Slight elbow bend. Raise to just below shoulder height. Lead with elbows, control the lower.',
+            easier: 'Seated or partial range.',
+            youtube: 'https://www.youtube.com/results?search_query=dumbbell+lateral+raise+form'
+          },
+          {
+            id: 'front-raise',
+            name: 'Front Raise',
+            target: 'Front Delts',
+            sets: 3,
+            reps: '12–15',
+            rest: '45s',
+            cues: 'Raise dumbbells in front to shoulder height with slight elbow bend. Slow and controlled.',
+            easier: 'Alternating arms or lighter tempo.',
+            youtube: 'https://www.youtube.com/results?search_query=dumbbell+front+raise+form'
+          },
+          {
+            id: 'rear-delt-shoulder',
+            name: 'Rear Delt Fly',
+            target: 'Rear Delts (Posture)',
+            sets: 3,
+            reps: '12–15',
+            rest: '45s',
+            cues: 'Bent-over or standing. Open arms out, squeeze shoulder blades.',
+            easier: 'Supported version.',
+            youtube: 'https://www.youtube.com/results?search_query=dumbbell+rear+delt+fly'
+          },
+          {
+            id: 'abs',
+            name: 'Abs Circuit',
+            target: 'Core',
+            sets: 3,
+            reps: 'Dead Bug 8–10/side • Glute Bridge 12–15 • Knee Tucks/Leg Raises 10–12',
+            rest: '30–45s',
+            cues: 'Move slowly and with control. Brace core. For bridges, drive through heels and squeeze glutes at top.',
+            easier: 'Shorter range of motion or hands supporting. Skip any that cause discomfort.',
+            youtube: 'https://www.youtube.com/results?search_query=beginner+dead+bug+glute+bridge+form'
+          }
+        ]
+      },
+      day5: {
+        id: 'day5',
+        name: 'Legs + Glutes',
+        short: 'Legs/Glutes',
+        emoji: '🦵',
+        warmup: 'Bodyweight squats • Hip circles • Leg swings • Glute bridges • Light marches.',
+        exercises: [
+          {
+            id: 'goblet-squat',
+            name: 'Goblet Squat',
+            target: 'Quads, Glutes, Core',
+            sets: 3,
+            reps: '12–15',
+            rest: '60s',
+            cues: 'Hold one DB vertically at chest. Feet shoulder-width, toes slightly out. Sit back and down (chest up, knees track over toes). Drive through midfoot/heels.',
+            easier: 'Bodyweight squat or shallower depth.',
+            youtube: 'https://www.youtube.com/results?search_query=dumbbell+goblet+squat+form+beginner'
+          },
+          {
+            id: 'rdl',
+            name: 'Romanian Deadlift (RDL)',
+            target: 'Hamstrings, Glutes, Posterior Chain',
+            sets: 3,
+            reps: '12–15',
+            rest: '60s',
+            cues: 'Soft knees, hinge at hips, push butt back. Keep back flat. Feel stretch in hamstrings. Stand by driving hips forward. Do not round the lower back.',
+            easier: 'Shallower hinge or bodyweight good mornings.',
+            youtube: 'https://www.youtube.com/results?search_query=dumbbell+romanian+deadlift+form+beginner'
+          },
+          {
+            id: 'reverse-lunge',
+            name: 'Reverse Lunge / Split Squat',
+            target: 'Quads, Glutes (unilateral)',
+            sets: 3,
+            reps: '10–12 per leg',
+            rest: '45–60s',
+            cues: 'Step back into lunge or stay in static split stance. Front knee tracks over toes. Keep torso upright. Drive through front heel.',
+            easier: 'Static split squat (no step) or shorter range.',
+            youtube: 'https://www.youtube.com/results?search_query=dumbbell+reverse+lunge+form'
+          },
+          {
+            id: 'glute-bridge',
+            name: 'Glute Bridge / Hip Thrust',
+            target: 'Glutes',
+            sets: 3,
+            reps: '15–20',
+            rest: '45s',
+            cues: 'Upper back on floor (or elevated if comfortable). DB across hips if desired. Drive through heels, squeeze glutes hard at top, lower with control.',
+            easier: 'Bodyweight only, shorter range.',
+            youtube: 'https://www.youtube.com/results?search_query=dumbbell+glute+bridge+form'
+          },
+          {
+            id: 'calf-raise',
+            name: 'Standing Calf Raise (optional)',
+            target: 'Calves',
+            sets: 2,
+            reps: '15–20',
+            rest: '30s',
+            cues: 'Hold DBs at sides. Rise onto toes, squeeze, lower slowly. Can do one leg at a time for more challenge.',
+            easier: 'Bodyweight or seated if balance is an issue.',
+            youtube: 'https://www.youtube.com/results?search_query=dumbbell+calf+raise+form'
+          }
+        ]
+      }
+    };
+
+    const dayOrder = ['day1', 'day2', 'day4', 'day5'];
+
+    // ========== STATE ==========
+    let state = {
+      completedDays: {},
+      setProgress: {},
+      notes: {},
+      currentDay: 'day1'
+    };
+
+    // ========== STORAGE ==========
+    function loadState() {
+      try {
+        const saved = localStorage.getItem('beginnerDBWorkout');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          state = { ...state, ...parsed };
+        }
+      } catch (e) {
+        console.warn('Could not load state', e);
+      }
+    }
+
+    function saveState() {
+      try {
+        localStorage.setItem('beginnerDBWorkout', JSON.stringify(state));
+      } catch (e) {
+        console.warn('Could not save state', e);
+      }
+    }
+
+    // ========== HELPERS ==========
+    function todayStr() {
+      const d = new Date();
+      return d.toISOString().slice(0, 10);
+    }
+
+    function formatDate(dateStr) {
+      const d = new Date(dateStr + 'T12:00:00');
+      return d.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+    }
+
+    function getStreak() {
+      const dates = Object.keys(state.completedDays).sort().reverse();
+      if (dates.length === 0) return 0;
+
+      let streak = 0;
+      let current = new Date();
+      current.setHours(12, 0, 0, 0);
+
+      const today = todayStr();
+      const yesterday = new Date(current);
+      yesterday.setDate(yesterday.getDate() - 1);
+      const yStr = yesterday.toISOString().slice(0, 10);
+
+      if (!state.completedDays[today] && !state.completedDays[yStr]) {
+        return 0;
+      }
+
+      let checkDate = state.completedDays[today] ? new Date(today + 'T12:00:00') : new Date(yStr + 'T12:00:00');
+
+      while (true) {
+        const str = checkDate.toISOString().slice(0, 10);
+        if (state.completedDays[str]) {
+          streak++;
+          checkDate.setDate(checkDate.getDate() - 1);
+        } else {
+          break;
+        }
+      }
+      return streak;
+    }
+
+    function getWeekCount() {
+      const now = new Date();
+      const dayOfWeek = now.getDay();
+      const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+      const monday = new Date(now);
+      monday.setDate(now.getDate() + mondayOffset);
+      monday.setHours(0, 0, 0, 0);
+
+      let count = 0;
+      for (let i = 0; i < 7; i++) {
+        const d = new Date(monday);
+        d.setDate(monday.getDate() + i);
+        const str = d.toISOString().slice(0, 10);
+        if (state.completedDays[str]) count++;
+      }
+      return count;
+    }
+
+    function isDayFullyComplete(dayId) {
+      const w = workouts[dayId];
+      if (!w) return false;
+      const prog = state.setProgress[dayId] || {};
+      return w.exercises.every(ex => {
+        const sets = prog[ex.id] || [];
+        return sets.length >= ex.sets && sets.every(Boolean);
+      });
+    }
+
+    function markDayCompleteIfReady(dayId) {
+      if (isDayFullyComplete(dayId)) {
+        const today = todayStr();
+        if (!state.completedDays[today]) {
+          state.completedDays[today] = dayId;
+          saveState();
+          updateDashboard();
+        }
+      }
+    }
+
+    // ========== RENDER ==========
+    function showView(viewName) {
+      document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+      document.getElementById('view-' + viewName).classList.add('active');
+
+      document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.view === viewName);
+      });
+
+      if (viewName === 'dashboard') updateDashboard();
+      if (viewName === 'progress') renderProgress();
+      if (viewName === 'workout') renderWorkout(state.currentDay);
+    }
+
+    function updateDashboard() {
+      document.getElementById('streak-count').textContent = getStreak();
+      document.getElementById('week-count').textContent = getWeekCount() + '/4';
+      document.getElementById('total-count').textContent = Object.keys(state.completedDays).length;
+
+      // Week calendar
+      const cal = document.getElementById('week-calendar');
+      cal.innerHTML = '';
+      const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+      days.forEach(d => {
+        const h = document.createElement('div');
+        h.className = 'cal-header';
+        h.textContent = d;
+        cal.appendChild(h);
+      });
+
+      const now = new Date();
+      const dayOfWeek = now.getDay();
+      const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+      const monday = new Date(now);
+      monday.setDate(now.getDate() + mondayOffset);
+
+      for (let i = 0; i < 7; i++) {
+        const d = new Date(monday);
+        d.setDate(monday.getDate() + i);
+        const str = d.toISOString().slice(0, 10);
+        const cell = document.createElement('div');
+        cell.className = 'cal-day';
+        cell.textContent = d.getDate();
+
+        if (str === todayStr()) cell.classList.add('today');
+        if (state.completedDays[str]) cell.classList.add('completed');
+        if (i === 2 || i >= 5) cell.classList.add('rest');
+
+        cal.appendChild(cell);
+      }
+
+      // Day tabs
+      const tabs = document.getElementById('day-tabs');
+      tabs.innerHTML = '';
+      dayOrder.forEach(id => {
+        const w = workouts[id];
+        const btn = document.createElement('button');
+        btn.className = 'tab';
+        if (state.currentDay === id) btn.classList.add('active');
+        if (state.completedDays[todayStr()] === id) btn.classList.add('completed');
+
+        btn.textContent = w.emoji + ' ' + w.short;
+        btn.onclick = () => {
+          state.currentDay = id;
+          saveState();
+          showView('workout');
+        };
+        tabs.appendChild(btn);
+      });
+    }
+
+    function renderWorkout(dayId) {
+      const w = workouts[dayId];
+      if (!w) return;
+
+      state.currentDay = dayId;
+      const prog = state.setProgress[dayId] || {};
+      const notes = state.notes[dayId] || '';
+
+      let html = `
+        <div class="card">
+          <h2>${w.emoji} ${w.name}</h2>
+          <span class="badge">~45 min • 2.5 kg DBs</span>
+          ${isDayFullyComplete(dayId) ? '<span class="badge success" style="margin-left:6px;">Completed ✓</span>' : ''}
+        </div>
+
+        <div class="warmup">
+          <strong>🔥 Warm-up (5 min)</strong><br>
+          ${w.warmup}
+        </div>
+      `;
+
+      w.exercises.forEach((ex, idx) => {
+        const setsDone = prog[ex.id] || Array(ex.sets).fill(false);
+        const allDone = setsDone.every(Boolean) && setsDone.length >= ex.sets;
+        const checkedCount = setsDone.filter(Boolean).length;
+
+        html += `
+          <div class="exercise ${allDone ? 'done' : ''}" id="ex-${ex.id}">
+            <div class="exercise-header">
+              <div class="exercise-name">${idx + 1}. ${ex.name}</div>
+              <span class="badge">${checkedCount}/${ex.sets}</span>
+            </div>
+            <div class="exercise-meta">
+              <strong>${ex.sets} sets × ${ex.reps}</strong> • Rest ${ex.rest}
+            </div>
+            <div class="target">🎯 ${ex.target}</div>
+            <div class="form-cues"><strong>Form:</strong> ${ex.cues}</div>
+            <div class="easier"><strong>Easier:</strong> ${ex.easier}</div>
+            <a class="youtube-link" href="${ex.youtube}" target="_blank" rel="noopener">▶ Watch form tutorial</a>
+
+            <div class="set-label">Tap to mark sets complete:</div>
+            <div class="sets">
+        `;
+
+        for (let s = 0; s < ex.sets; s++) {
+          const checked = setsDone[s] ? 'checked' : '';
+          html += `<button class="set-btn ${checked}" onclick="toggleSet('${dayId}', '${ex.id}', ${s})">${s + 1}</button>`;
+        }
+
+        html += `
+            </div>
+          </div>
+        `;
+      });
+
+      html += `
+        <div class="card">
+          <h3>📝 Notes (optional)</h3>
+          <textarea class="notes-area" id="day-notes" placeholder="How did it feel? Any form wins or struggles?">${notes}</textarea>
+          <button class="complete-btn ${isDayFullyComplete(dayId) ? 'done' : ''}" onclick="saveNotesAndComplete('${dayId}')">
+            ${isDayFullyComplete(dayId) ? '✓ Day Complete – Update Notes' : 'Save Notes & Check Completion'}
+          </button>
+        </div>
+
+        <div class="safety">
+          <strong>⚠️ Stop if pain.</strong> Muscle burn is okay. Sharp joint pain is not. Form over ego.
+        </div>
+      `;
+
+      document.getElementById('workout-content').innerHTML = html;
+    }
+
+    function toggleSet(dayId, exId, setIndex) {
+      if (!state.setProgress[dayId]) state.setProgress[dayId] = {};
+      if (!state.setProgress[dayId][exId]) {
+        const ex = workouts[dayId].exercises.find(e => e.id === exId);
+        state.setProgress[dayId][exId] = Array(ex.sets).fill(false);
+      }
+
+      state.setProgress[dayId][exId][setIndex] = !state.setProgress[dayId][exId][setIndex];
+      saveState();
+      markDayCompleteIfReady(dayId);
+      renderWorkout(dayId);
+      updateDashboard();
+    }
+
+    function saveNotesAndComplete(dayId) {
+      const notesEl = document.getElementById('day-notes');
+      if (notesEl) {
+        state.notes[dayId] = notesEl.value;
+      }
+      markDayCompleteIfReady(dayId);
+      saveState();
+      renderWorkout(dayId);
+      updateDashboard();
+      alert(isDayFullyComplete(dayId) 
+        ? 'Great work! Day marked complete. Streak updated.' 
+        : 'Notes saved. Finish all sets to mark the day complete.');
+    }
+
+    function renderProgress() {
+      const list = document.getElementById('progress-list');
+      const dates = Object.keys(state.completedDays).sort().reverse();
+
+      if (dates.length === 0) {
+        list.innerHTML = '<div class="empty-state">No completed workouts yet.<br>Finish your first day to start tracking!</div>';
+      } else {
+        list.innerHTML = dates.map(date => {
+          const dayId = state.completedDays[date];
+          const w = workouts[dayId];
+          return `
+            <div class="log-item">
+              <div>
+                <strong>${formatDate(date)}</strong><br>
+                <span style="color:var(--text-muted);font-size:0.85rem;">${w ? w.emoji + ' ' + w.name : dayId}</span>
+              </div>
+              <span class="badge success">Done</span>
+            </div>
+          `;
+        }).join('');
+      }
+
+      // Full calendar (last 28 days)
+      const fullCal = document.getElementById('full-calendar');
+      fullCal.innerHTML = '';
+      const headers = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+      headers.forEach(h => {
+        const el = document.createElement('div');
+        el.className = 'cal-header';
+        el.textContent = h;
+        fullCal.appendChild(el);
+      });
+
+      const today = new Date();
+      const start = new Date(today);
+      start.setDate(today.getDate() - 27);
+      const startDay = start.getDay();
+      const mondayOffset = startDay === 0 ? -6 : 1 - startDay;
+      start.setDate(start.getDate() + mondayOffset);
+
+      for (let i = 0; i < 28; i++) {
+        const d = new Date(start);
+        d.setDate(start.getDate() + i);
+        const str = d.toISOString().slice(0, 10);
+        const cell = document.createElement('div');
+        cell.className = 'cal-day';
+        cell.textContent = d.getDate();
+        if (str === todayStr()) cell.classList.add('today');
+        if (state.completedDays[str]) cell.classList.add('completed');
+        fullCal.appendChild(cell);
+      }
+    }
+
+    function resetAllData() {
+      if (confirm('This will erase all streaks, completed days, set progress and notes. Are you sure?')) {
+        state = {
+          completedDays: {},
+          setProgress: {},
+          notes: {},
+          currentDay: 'day1'
+        };
+        saveState();
+        updateDashboard();
+        renderProgress();
+        alert('All data reset.');
+      }
+    }
+
+    // ========== INIT ==========
+    loadState();
+    updateDashboard();
+    renderWorkout(state.currentDay || 'day1');
+  </script>
+</body>
+</html>
